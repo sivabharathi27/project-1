@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="theme-color" content="#2C2C2A" />
+<title>Hotel Billing</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #F7F5F0;
+    --surface: #FFFFFF;
+    --surface2: #F1EFE8;
+    --border: rgba(44,44,42,0.12);
+    --border-md: rgba(44,44,42,0.22);
+    --text: #2C2C2A;
+    --text2: #5F5E5A;
+    --text3: #888780;
+    --amber: #BA7517;
+    --amber-bg: #FAEEDA;
+    --amber-mid: #FAC775;
+    --teal: #0F6E56;
+    --teal-bg: #E1F5EE;
+    --red: #A32D2D;
+    --red-bg: #FCEBEB;
+    --green: #3B6D11;
+    --green-bg: #EAF3DE;
+    --radius: 10px;
+    --radius-lg: 14px;
+  }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+  }
+
+  .app {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    max-width: 480px;
+    margin: 0 auto;
+    background: var(--bg);
+    position: relative;
+  }
+
+  /* HEADER */
+  .header {
+    background: #2C2C2A;
+    color: #F1EFE8;
+    padding: 14px 16px 12px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .header-left h1 { font-size: 17px; font-weight: 600; letter-spacing: 0.3px; }
+  .header-left p { font-size: 11px; color: #888780; margin-top: 2px; }
+  .header-right { font-size: 11px; color: #888780; text-align: right; line-height: 1.6; }
+  .online-dot { color: #5DCAA5; }
+
+  /* TABS */
+  .tabs {
+    display: flex;
+    background: var(--surface);
+    border-bottom: 0.5px solid var(--border);
+    flex-shrink: 0;
+  }
+  .tab {
+    flex: 1;
+    padding: 12px 6px;
+    font-size: 13px;
+    font-weight: 500;
+    text-align: center;
+    cursor: pointer;
+    color: var(--text3);
+    background: none;
+    border: none;
+    border-bottom: 2.5px solid transparent;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .tab.active { color: var(--amber); border-bottom-color: var(--amber); }
+
+  /* PAGES */
+  .pages { flex: 1; overflow: hidden; position: relative; }
+  .page {
+    position: absolute;
+    inset: 0;
+    overflow-y: auto;
+    padding: 14px 14px 80px;
+    display: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .page.active { display: block; }
+
+  /* SECTION TITLE */
+  .sec-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text2);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin-bottom: 10px;
+  }
+
+  /* FORM CARD */
+  .form-card {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 14px;
+    margin-bottom: 16px;
+  }
+  .field { margin-bottom: 11px; }
+  .field:last-child { margin-bottom: 0; }
+  .field label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 5px;
+  }
+  .field input, .field select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 0.5px solid var(--border-md);
+    border-radius: var(--radius);
+    font-size: 14px;
+    background: var(--surface);
+    color: var(--text);
+    outline: none;
+    -webkit-appearance: none;
+  }
+  .field input:focus, .field select:focus { border-color: var(--amber); }
+  .row-2 { display: flex; gap: 8px; }
+  .row-2 .field { flex: 1; }
+
+  /* BUTTONS */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 11px 16px;
+    border-radius: var(--radius);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 0.5px solid transparent;
+    transition: all 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn-dark { background: #2C2C2A; color: #F1EFE8; }
+  .btn-dark:hover { background: #444441; }
+  .btn-amber { background: var(--amber); color: #fff; border-color: var(--amber); }
+  .btn-amber:hover { background: #9A6212; }
+  .btn-danger { background: var(--red-bg); color: var(--red); border-color: #F7C1C1; }
+  .btn-danger:hover { background: #F7C1C1; }
+  .btn-success { background: var(--green-bg); color: var(--green); border-color: #C0DD97; }
+  .btn-success:hover { background: #C0DD97; }
+  .btn-full { width: 100%; }
+  .btn-sm { padding: 6px 11px; font-size: 12px; }
+
+  /* DIVIDER */
+  .divider { border: none; border-top: 0.5px solid var(--border); margin: 14px 0; }
+
+  /* LIST ROW HEADER */
+  .list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  /* MENU ITEMS */
+  .menu-list { display: flex; flex-direction: column; gap: 8px; }
+  .menu-item {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .menu-item-info { flex: 1; min-width: 0; }
+  .menu-item-name { font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .menu-item-meta { font-size: 12px; color: var(--text3); margin-top: 3px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+  .price-tag { font-size: 15px; font-weight: 600; color: var(--amber); white-space: nowrap; }
+
+  /* BADGES */
+  .badge {
+    display: inline-block;
+    padding: 2px 7px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .badge-ok { background: var(--teal-bg); color: var(--teal); }
+  .badge-low { background: var(--amber-bg); color: var(--amber); }
+  .badge-out { background: var(--red-bg); color: var(--red); }
+
+  /* CATEGORY FILTER */
+  .cat-filter {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+  }
+  .cat-pill {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    border: 0.5px solid var(--border-md);
+    background: var(--surface);
+    color: var(--text2);
+    transition: all 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .cat-pill.active { background: #2C2C2A; color: #F1EFE8; border-color: #2C2C2A; }
+
+  /* BILLING GRID */
+  .bill-grid { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+  .bill-item {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: border-color 0.15s, background 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .bill-item.has-qty { border-color: var(--amber); background: var(--amber-bg); }
+  .bill-item.out { opacity: 0.4; pointer-events: none; }
+  .bill-item-left { flex: 1; min-width: 0; }
+  .bill-item-name { font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bill-item-price { font-size: 12px; color: var(--amber); font-weight: 500; margin-top: 2px; }
+
+  /* QTY CONTROLS */
+  .qty-ctrl { display: flex; align-items: center; gap: 5px; }
+  .qty-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 0.5px solid var(--border-md);
+    background: var(--surface);
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text);
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.1s;
+  }
+  .qty-btn:active { background: var(--surface2); }
+  .qty-num { width: 22px; text-align: center; font-size: 14px; font-weight: 600; }
+
+  /* STATS ROW */
+  .stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+  .stat-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 12px; text-align: center; }
+  .stat-num { font-size: 22px; font-weight: 600; color: var(--text); }
+  .stat-lbl { font-size: 11px; color: var(--text3); margin-top: 3px; }
+
+  /* TABLE NUMBER */
+  .table-row { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+  .table-row label { font-size: 13px; color: var(--text2); white-space: nowrap; }
+  .table-row input { flex: 1; padding: 8px 12px; border: 0.5px solid var(--border-md); border-radius: var(--radius); font-size: 14px; background: var(--surface); color: var(--text); }
+  .table-row input:focus { outline: none; border-color: var(--amber); }
+
+  /* CART */
+  .cart {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 12px 14px;
+    margin-bottom: 12px;
+  }
+  .cart-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 7px 0;
+    border-bottom: 0.5px solid var(--border);
+    font-size: 13px;
+  }
+  .cart-row:last-child { border-bottom: none; }
+  .cart-row-name { color: var(--text); }
+  .cart-row-right { display: flex; align-items: center; gap: 8px; }
+  .cart-row-price { font-weight: 500; color: var(--text); }
+  .remove-btn { background: none; border: none; cursor: pointer; color: var(--text3); font-size: 18px; padding: 0 2px; line-height: 1; }
+  .remove-btn:hover { color: var(--red); }
+  .cart-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 10px;
+    margin-top: 6px;
+    border-top: 1.5px solid var(--border-md);
+  }
+  .cart-total-label { font-size: 14px; font-weight: 600; }
+  .cart-total-amt { font-size: 22px; font-weight: 700; color: var(--amber); }
+
+  /* GST */
+  .gst-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+  }
+  .gst-row label { font-size: 13px; color: var(--text2); flex: 1; }
+  .gst-row select { padding: 6px 10px; border: 0.5px solid var(--border-md); border-radius: 6px; font-size: 13px; background: var(--surface); color: var(--text); }
+
+  /* BILL ACTIONS */
+  .bill-actions { display: flex; gap: 8px; }
+
+  /* RECEIPT MODAL */
+  .overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(44,44,42,0.55);
+    z-index: 200;
+    display: flex;
+    align-items: flex-end;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s;
+  }
+  .overlay.open { opacity: 1; pointer-events: all; }
+  .sheet {
+    background: var(--surface);
+    border-radius: 20px 20px 0 0;
+    padding: 20px 16px 32px;
+    width: 100%;
+    max-height: 88vh;
+    overflow-y: auto;
+    transform: translateY(24px);
+    transition: transform 0.25s;
+    -webkit-overflow-scrolling: touch;
+  }
+  .overlay.open .sheet { transform: translateY(0); }
+  .sheet-handle { width: 40px; height: 4px; background: var(--border-md); border-radius: 2px; margin: 0 auto 16px; }
+  .receipt-header { text-align: center; padding-bottom: 12px; border-bottom: 0.5px solid var(--border); margin-bottom: 12px; }
+  .receipt-hotel { font-size: 18px; font-weight: 700; letter-spacing: 0.5px; }
+  .receipt-sub { font-size: 12px; color: var(--text3); margin-top: 3px; }
+  .receipt-table-no { font-size: 13px; color: var(--text2); margin-top: 4px; }
+  .receipt-line {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    padding: 6px 0;
+    border-bottom: 0.5px dashed var(--border);
+  }
+  .receipt-line:last-child { border-bottom: none; }
+  .receipt-subtotal, .receipt-gst, .receipt-total {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    font-size: 14px;
+  }
+  .receipt-total { font-size: 16px; font-weight: 700; border-top: 1.5px solid var(--border-md); padding-top: 10px; margin-top: 4px; color: var(--amber); }
+  .sheet-actions { display: flex; gap: 8px; margin-top: 18px; }
+
+  /* HISTORY */
+  .hist-item {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    margin-bottom: 8px;
+  }
+  .hist-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+  .hist-meta { font-size: 12px; color: var(--text3); }
+  .hist-bill-no { font-size: 12px; font-weight: 600; color: var(--amber); }
+  .hist-total { font-size: 16px; font-weight: 700; color: var(--text); }
+  .hist-items { font-size: 12px; color: var(--text2); line-height: 1.6; }
+  .hist-table { font-size: 11px; color: var(--teal); font-weight: 600; margin-top: 4px; }
+
+  /* SETTINGS PAGE */
+  .settings-field { margin-bottom: 14px; }
+  .settings-field label { display: block; font-size: 12px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+  .settings-field input { width: 100%; padding: 11px 12px; border: 0.5px solid var(--border-md); border-radius: var(--radius); font-size: 14px; background: var(--surface); color: var(--text); }
+  .settings-field input:focus { outline: none; border-color: var(--amber); }
+  .summary-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 14px; margin-bottom: 12px; }
+  .summary-row { display: flex; justify-content: space-between; font-size: 13px; padding: 5px 0; border-bottom: 0.5px solid var(--border); }
+  .summary-row:last-child { border-bottom: none; }
+  .summary-row .key { color: var(--text2); }
+  .summary-row .val { font-weight: 600; }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(8px);
+    background: #2C2C2A;
+    color: #F1EFE8;
+    padding: 10px 20px;
+    border-radius: var(--radius);
+    font-size: 13px;
+    font-weight: 500;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s, transform 0.25s;
+    z-index: 999;
+    white-space: nowrap;
+    max-width: 90vw;
+    text-align: center;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* EMPTY STATE */
+  .empty { text-align: center; padding: 32px 16px; color: var(--text3); font-size: 14px; }
+  .empty-icon { font-size: 32px; margin-bottom: 8px; }
+
+  /* SCROLLBAR */
+  .page::-webkit-scrollbar { width: 3px; }
+  .page::-webkit-scrollbar-thumb { background: var(--border-md); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-left">
+      <h1 id="header-hotel-name">Hotel Billing</h1>
+      <p id="header-tagline">Offline Billing System</p>
+    </div>
+    <div class="header-right">
+      Offline <span class="online-dot">●</span><br>
+      Bill #<span id="header-bill-no">001</span>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('menu')">☰ Menu</button>
+    <button class="tab" onclick="switchTab('billing')">🧾 Bill</button>
+    <button class="tab" onclick="switchTab('history')">📋 History</button>
+    <button class="tab" onclick="switchTab('settings')">⚙ Settings</button>
+  </div>
+
+  <!-- PAGES -->
+  <div class="pages">
+
+    <!-- MENU PAGE -->
+    <div class="page active" id="page-menu">
+      <div class="sec-title">Add Menu Item</div>
+      <div class="form-card">
+        <div class="field">
+          <label>Item Name</label>
+          <input type="text" id="inp-name" placeholder="e.g. Masala Dosa" autocomplete="off" />
+        </div>
+        <div class="row-2">
+          <div class="field">
+            <label>Price (₹)</label>
+            <input type="number" id="inp-price" placeholder="0.00" min="0" step="0.50" inputmode="decimal" />
+          </div>
+          <div class="field">
+            <label>Category</label>
+            <input type="text" id="inp-cat" placeholder="Breakfast" autocomplete="off" />
+          </div>
+        </div>
+        <div class="field">
+          <label>Stock Qty (blank = unlimited)</label>
+          <input type="number" id="inp-stock" placeholder="Leave blank for unlimited" min="0" inputmode="numeric" />
+        </div>
+        <button class="btn btn-dark btn-full" style="margin-top:4px" onclick="addItem()">+ Add to Menu</button>
+      </div>
+
+      <div class="list-header">
+        <div class="sec-title" style="margin:0">Menu Items (<span id="menu-count">0</span>)</div>
+        <button class="btn btn-danger btn-sm" onclick="clearMenu()">Clear All</button>
+      </div>
+      <div class="menu-list" id="menu-list">
+        <div class="empty"><div class="empty-icon">🍽</div>No items yet. Add your first menu item above.</div>
+      </div>
+    </div>
+
+    <!-- BILLING PAGE -->
+    <div class="page" id="page-billing">
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-num" id="stat-qty">0</div>
+          <div class="stat-lbl">Total Items</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num">₹<span id="stat-total">0.00</span></div>
+          <div class="stat-lbl">Current Total</div>
+        </div>
+      </div>
+
+      <div class="table-row">
+        <label>Table No.</label>
+        <input type="text" id="table-no" placeholder="e.g. T1, Room 101" />
+      </div>
+
+      <div class="cat-filter" id="cat-filter"></div>
+
+      <div class="sec-title">Select Items</div>
+      <div class="bill-grid" id="bill-grid">
+        <div class="empty"><div class="empty-icon">🍴</div>Add items in Menu tab first.</div>
+      </div>
+
+      <hr class="divider" />
+
+      <div class="sec-title">Current Bill</div>
+      <div id="bill-summary">
+        <div class="empty" style="padding:14px">No items added yet.</div>
+      </div>
+
+      <div class="gst-row">
+        <label>GST / Tax</label>
+        <select id="gst-select">
+          <option value="0">None (0%)</option>
+          <option value="5">GST 5%</option>
+          <option value="12">GST 12%</option>
+          <option value="18" selected>GST 18%</option>
+          <option value="28">GST 28%</option>
+        </select>
+      </div>
+
+      <div class="bill-actions">
+        <button class="btn btn-danger" style="flex:1" onclick="clearBill()">Clear</button>
+        <button class="btn btn-amber" style="flex:2" onclick="openReceipt()">Generate Bill →</button>
+      </div>
+    </div>
+
+    <!-- HISTORY PAGE -->
+    <div class="page" id="page-history">
+      <div class="list-header">
+        <div class="sec-title" style="margin:0">Bill History (<span id="hist-count">0</span>)</div>
+        <button class="btn btn-danger btn-sm" onclick="clearHistory()">Clear All</button>
+      </div>
+      <div id="hist-list">
+        <div class="empty"><div class="empty-icon">📋</div>No bills generated yet.</div>
+      </div>
+    </div>
+
+    <!-- SETTINGS PAGE -->
+    <div class="page" id="page-settings">
+      <div class="sec-title">Hotel Info</div>
+      <div class="form-card">
+        <div class="settings-field">
+          <label>Hotel / Restaurant Name</label>
+          <input type="text" id="set-hotel-name" placeholder="Grand Hotel" />
+        </div>
+        <div class="settings-field">
+          <label>Tagline / Address</label>
+          <input type="text" id="set-tagline" placeholder="123 Main Street, City" />
+        </div>
+        <div class="settings-field">
+          <label>GST Number (optional)</label>
+          <input type="text" id="set-gst-no" placeholder="22AAAAA0000A1Z5" />
+        </div>
+        <div class="settings-field" style="margin-bottom:0">
+          <label>Phone Number</label>
+          <input type="tel" id="set-phone" placeholder="+91 98765 43210" />
+        </div>
+        <button class="btn btn-dark btn-full" style="margin-top:12px" onclick="saveSettings()">Save Settings</button>
+      </div>
+
+      <div class="sec-title">Today's Summary</div>
+      <div class="summary-card" id="today-summary">
+        <div class="summary-row"><span class="key">Bills Generated</span><span class="val" id="sum-bills">0</span></div>
+        <div class="summary-row"><span class="key">Total Revenue</span><span class="val" id="sum-revenue">₹0.00</span></div>
+        <div class="summary-row"><span class="key">Total GST Collected</span><span class="val" id="sum-gst">₹0.00</span></div>
+        <div class="summary-row"><span class="key">Menu Items</span><span class="val" id="sum-menu">0</span></div>
+      </div>
+
+      <button class="btn btn-danger btn-full" onclick="factoryReset()">⚠ Reset All Data</button>
+    </div>
+
+  </div><!-- /pages -->
+
+</div><!-- /app -->
+
+<!-- RECEIPT MODAL -->
+<div class="overlay" id="receipt-overlay">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="receipt-header">
+      <div class="receipt-hotel" id="rec-hotel-name">Hotel Name</div>
+      <div class="receipt-sub" id="rec-tagline"></div>
+      <div class="receipt-sub" id="rec-gst-no" style="margin-top:2px"></div>
+      <div class="receipt-sub" id="rec-datetime" style="margin-top:6px"></div>
+      <div class="receipt-table-no" id="rec-table-no"></div>
+      <div class="receipt-sub" style="margin-top:4px">Bill No: <strong id="rec-bill-no"></strong></div>
+    </div>
+    <div id="rec-lines"></div>
+    <div style="border-top: 0.5px solid var(--border); margin: 8px 0;"></div>
+    <div class="receipt-subtotal"><span>Subtotal</span><span id="rec-subtotal"></span></div>
+    <div class="receipt-gst"><span id="rec-gst-label">GST (18%)</span><span id="rec-gst-amt"></span></div>
+    <div class="receipt-total"><span>Total Amount</span><span id="rec-total"></span></div>
+    <div style="text-align:center;font-size:12px;color:var(--text3);margin-top:12px" id="rec-phone"></div>
+    <div style="text-align:center;font-size:11px;color:var(--text3);margin-top:6px">Thank you for visiting!</div>
+    <div class="sheet-actions">
+      <button class="btn btn-danger" style="flex:1" onclick="closeReceipt()">Cancel</button>
+      <button class="btn btn-success" style="flex:2" onclick="confirmBill()">Confirm & Save ✓</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── STATE ───────────────────────────────────────────────
+let menu = [];
+let cart = {};        // { itemId: quantity }
+let history = [];
+let settings = { hotelName: "Grand Hotel", tagline: "Offline Billing System", gstNo: "", phone: "" };
+let activeCat = "All";
+let billCounter = 1;
+
+// ─── STORAGE ─────────────────────────────────────────────
+function saveData() {
+  try {
+    localStorage.setItem("hb_menu", JSON.stringify(menu));
+    localStorage.setItem("hb_history", JSON.stringify(history));
+    localStorage.setItem("hb_settings", JSON.stringify(settings));
+    localStorage.setItem("hb_bill_counter", String(billCounter));
+  } catch(e) {}
+}
+
+function loadData() {
+  try {
+    menu = JSON.parse(localStorage.getItem("hb_menu") || "[]");
+    history = JSON.parse(localStorage.getItem("hb_history") || "[]");
+    settings = JSON.parse(localStorage.getItem("hb_settings") || "{}");
+    settings.hotelName = settings.hotelName || "Grand Hotel";
+    settings.tagline = settings.tagline || "Offline Billing System";
+    settings.gstNo = settings.gstNo || "";
+    settings.phone = settings.phone || "";
+    billCounter = parseInt(localStorage.getItem("hb_bill_counter") || "1");
+  } catch(e) { menu = []; history = []; }
+}
+
+// ─── UTILS ───────────────────────────────────────────────
+function toast(msg, dur = 2200) {
+  const el = document.getElementById("toast");
+  el.textContent = msg;
+  el.classList.add("show");
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove("show"), dur);
+}
+
+function fmt(n) { return parseFloat(n).toFixed(2); }
+
+function padBillNo(n) { return String(n).padStart(3, "0"); }
+
+function switchTab(tab) {
+  document.querySelectorAll(".tab").forEach((t, i) => {
+    t.classList.toggle("active", ["menu","billing","history","settings"][i] === tab);
+  });
+  document.querySelectorAll(".page").forEach((p, i) => {
+    p.classList.toggle("active", ["menu","billing","history","settings"][i] === tab);
+  });
+  if (tab === "billing") renderBillingPage();
+  if (tab === "history") renderHistory();
+  if (tab === "settings") renderSettings();
+}
+
+// ─── HEADER ──────────────────────────────────────────────
+function updateHeader() {
+  document.getElementById("header-hotel-name").textContent = settings.hotelName;
+  document.getElementById("header-tagline").textContent = settings.tagline || "Offline Billing System";
+  document.getElementById("header-bill-no").textContent = padBillNo(billCounter);
+}
+
+// ─── MENU ─────────────────────────────────────────────────
+function addItem() {
+  const name = document.getElementById("inp-name").value.trim();
+  const priceVal = document.getElementById("inp-price").value;
+  const cat = document.getElementById("inp-cat").value.trim() || "General";
+  const stockVal = document.getElementById("inp-stock").value.trim();
+
+  if (!name) { toast("⚠ Enter item name"); return; }
+  const price = parseFloat(priceVal);
+  if (isNaN(price) || price < 0) { toast("⚠ Enter valid price"); return; }
+  const stock = stockVal === "" ? null : parseInt(stockVal);
+
+  menu.push({ id: Date.now(), name, price, category: cat, stock });
+  saveData();
+  renderMenuList();
+  document.getElementById("inp-name").value = "";
+  document.getElementById("inp-price").value = "";
+  document.getElementById("inp-cat").value = "";
+  document.getElementById("inp-stock").value = "";
+  document.getElementById("inp-name").focus();
+  toast("✓ Added: " + name);
+}
+
+function deleteItem(id) {
+  menu = menu.filter(m => m.id !== id);
+  delete cart[id];
+  saveData();
+  renderMenuList();
+  renderBillSummary();
+}
+
+function clearMenu() {
+  if (!confirm("Clear all menu items?")) return;
+  menu = []; cart = {};
+  saveData(); renderMenuList();
+}
+
+function stockBadge(item) {
+  if (item.stock === null) return '<span class="badge badge-ok">Unlimited</span>';
+  if (item.stock === 0) return '<span class="badge badge-out">Out of stock</span>';
+  if (item.stock <= 5) return `<span class="badge badge-low">${item.stock} left</span>`;
+  return `<span class="badge badge-ok">${item.stock} in stock</span>`;
+}
+
+function renderMenuList() {
+  const list = document.getElementById("menu-list");
+  document.getElementById("menu-count").textContent = menu.length;
+  if (!menu.length) {
+    list.innerHTML = '<div class="empty"><div class="empty-icon">🍽</div>No items yet.</div>';
+    return;
+  }
+  list.innerHTML = menu.map(item => `
+    <div class="menu-item">
+      <div class="menu-item-info">
+        <div class="menu-item-name">${item.name}</div>
+        <div class="menu-item-meta">
+          <span>${item.category}</span>
+          ${stockBadge(item)}
+        </div>
+      </div>
+      <div class="price-tag">₹${fmt(item.price)}</div>
+      <button class="btn btn-danger btn-sm" onclick="deleteItem(${item.id})">✕</button>
+    </div>
+  `).join("");
+}
+
+// ─── BILLING ─────────────────────────────────────────────
+function renderBillingPage() {
+  // Category pills
+  const cats = ["All", ...new Set(menu.map(m => m.category))];
+  if (!cats.includes(activeCat)) activeCat = "All";
+  document.getElementById("cat-filter").innerHTML = cats.map(c =>
+    `<div class="cat-pill${c === activeCat ? " active" : ""}" onclick="setCat('${c}')">${c}</div>`
+  ).join("");
+
+  // Item grid
+  const filtered = activeCat === "All" ? menu : menu.filter(m => m.category === activeCat);
+  const grid = document.getElementById("bill-grid");
+  if (!menu.length) {
+    grid.innerHTML = '<div class="empty"><div class="empty-icon">🍴</div>Add items in Menu tab first.</div>';
+  } else {
+    grid.innerHTML = filtered.map(item => {
+      const qty = cart[item.id] || 0;
+      const oos = item.stock !== null && item.stock === 0;
+      const hasQty = qty > 0;
+      return `<div class="bill-item${oos ? " out" : ""}${hasQty ? " has-qty" : ""}">
+        <div class="bill-item-left">
+          <div class="bill-item-name">${item.name}</div>
+          <div class="bill-item-price">
+            ₹${fmt(item.price)}
+            ${item.stock !== null && item.stock > 0 && item.stock <= 5 ? `<span style="color:var(--amber);font-size:11px"> · ${item.stock} left</span>` : ""}
+            ${oos ? '<span style="color:var(--red);font-size:11px"> · Out of stock</span>' : ""}
+          </div>
+        </div>
+        <div class="qty-ctrl">
+          <button class="qty-btn" onclick="changeQty(${item.id}, -1)">−</button>
+          <div class="qty-num">${qty}</div>
+          <button class="qty-btn" onclick="changeQty(${item.id}, 1)">+</button>
+        </div>
+      </div>`;
+    }).join("");
+  }
+  renderBillSummary();
+}
+
+function setCat(cat) { activeCat = cat; renderBillingPage(); }
+
+function changeQty(id, delta) {
+  const item = menu.find(m => m.id === id);
+  if (!item) return;
+  const cur = cart[id] || 0;
+  const next = Math.max(0, cur + delta);
+  if (delta > 0 && item.stock !== null && next > item.stock) { toast("⚠ Not enough stock!"); return; }
+  if (next === 0) delete cart[id]; else cart[id] = next;
+  renderBillingPage();
+}
+
+function getCartItems() {
+  return Object.entries(cart)
+    .map(([id, qty]) => { const item = menu.find(m => m.id == id); return item ? { ...item, qty } : null; })
+    .filter(Boolean);
+}
+
+function getCartTotals() {
+  const items = getCartItems();
+  const subtotal = items.reduce((s, i) => s + i.price * i.qty, 0);
+  const gstRate = parseFloat(document.getElementById("gst-select")?.value || 0);
+  const gstAmt = subtotal * (gstRate / 100);
+  const total = subtotal + gstAmt;
+  return { subtotal, gstAmt, gstRate, total, items };
+}
+
+function renderBillSummary() {
+  const { subtotal, gstAmt, gstRate, total, items } = getCartTotals();
+  const totalQty = items.reduce((s, i) => s + i.qty, 0);
+  document.getElementById("stat-qty").textContent = totalQty;
+  document.getElementById("stat-total").textContent = fmt(total);
+
+  const summary = document.getElementById("bill-summary");
+  if (!items.length) {
+    summary.innerHTML = '<div class="empty" style="padding:14px">No items added yet.</div>';
+    return;
+  }
+  summary.innerHTML = `<div class="cart">
+    ${items.map(i => `<div class="cart-row">
+      <span class="cart-row-name">${i.name} × ${i.qty}</span>
+      <div class="cart-row-right">
+        <span class="cart-row-price">₹${fmt(i.price * i.qty)}</span>
+        <button class="remove-btn" onclick="removeCartItem(${i.id})">×</button>
+      </div>
+    </div>`).join("")}
+    <div class="cart-total">
+      <span class="cart-total-label">Total</span>
+      <span class="cart-total-amt">₹${fmt(total)}</span>
+    </div>
+  </div>`;
+}
+
+function removeCartItem(id) { delete cart[id]; renderBillingPage(); }
+
+function clearBill() { cart = {}; renderBillingPage(); toast("Bill cleared"); }
+
+// ─── RECEIPT ─────────────────────────────────────────────
+function openReceipt() {
+  const { subtotal, gstAmt, gstRate, total, items } = getCartTotals();
+  if (!items.length) { toast("⚠ Add items to bill first"); return; }
+
+  const now = new Date();
+  const tableNo = document.getElementById("table-no").value.trim();
+
+  document.getElementById("rec-hotel-name").textContent = settings.hotelName;
+  document.getElementById("rec-tagline").textContent = settings.tagline;
+  document.getElementById("rec-gst-no").textContent = settings.gstNo ? "GSTIN: " + settings.gstNo : "";
+  document.getElementById("rec-datetime").textContent = now.toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" });
+  document.getElementById("rec-table-no").textContent = tableNo ? "Table: " + tableNo : "";
+  document.getElementById("rec-bill-no").textContent = padBillNo(billCounter);
+  document.getElementById("rec-lines").innerHTML = items.map(i =>
+    `<div class="receipt-line"><span>${i.name} × ${i.qty}</span><span>₹${fmt(i.price * i.qty)}</span></div>`
+  ).join("");
+  document.getElementById("rec-subtotal").textContent = "₹" + fmt(subtotal);
+  document.getElementById("rec-gst-label").textContent = `GST (${gstRate}%)`;
+  document.getElementById("rec-gst-amt").textContent = "₹" + fmt(gstAmt);
+  document.getElementById("rec-total").textContent = "₹" + fmt(total);
+  document.getElementById("rec-phone").textContent = settings.phone ? "📞 " + settings.phone : "";
+
+  document.getElementById("receipt-overlay").classList.add("open");
+}
+
+function closeReceipt() {
+  document.getElementById("receipt-overlay").classList.remove("open");
+}
+
+function confirmBill() {
+  const { subtotal, gstAmt, gstRate, total, items } = getCartTotals();
+  const tableNo = document.getElementById("table-no").value.trim();
+
+  // Deduct stock
+  items.forEach(i => {
+    const m = menu.find(x => x.id === i.id);
+    if (m && m.stock !== null) m.stock = Math.max(0, m.stock - i.qty);
+  });
+
+  // Save bill
+  const bill = {
+    id: Date.now(),
+    billNo: padBillNo(billCounter),
+    time: new Date().toISOString(),
+    tableNo,
+    items,
+    subtotal,
+    gstAmt,
+    gstRate,
+    total
+  };
+  history.unshift(bill);
+  billCounter++;
+  saveData();
+
+  // Reset
+  cart = {};
+  document.getElementById("table-no").value = "";
+  closeReceipt();
+  renderMenuList();
+  renderBillingPage();
+  updateHeader();
+  toast("✓ Bill #" + bill.billNo + " saved! Stock updated.", 3000);
+}
+
+// ─── HISTORY ──────────────────────────────────────────────
+function renderHistory() {
+  const list = document.getElementById("hist-list");
+  document.getElementById("hist-count").textContent = history.length;
+  if (!history.length) {
+    list.innerHTML = '<div class="empty"><div class="empty-icon">📋</div>No bills yet.</div>';
+    return;
+  }
+  list.innerHTML = history.map(b => `
+    <div class="hist-item">
+      <div class="hist-top">
+        <div>
+          <div class="hist-bill-no">Bill #${b.billNo}</div>
+          <div class="hist-meta">${new Date(b.time).toLocaleString("en-IN", { dateStyle: "short", timeStyle: "short" })}</div>
+          ${b.tableNo ? `<div class="hist-table">Table: ${b.tableNo}</div>` : ""}
+        </div>
+        <div class="hist-total">₹${fmt(b.total)}</div>
+      </div>
+      <div class="hist-items">${b.items.map(i => `${i.name} ×${i.qty}`).join(" · ")}</div>
+      ${b.gstRate > 0 ? `<div style="font-size:11px;color:var(--text3);margin-top:4px">GST ${b.gstRate}%: ₹${fmt(b.gstAmt)} · Subtotal: ₹${fmt(b.subtotal)}</div>` : ""}
+    </div>
+  `).join("");
+}
+
+function clearHistory() {
+  if (!confirm("Clear all bill history?")) return;
+  history = []; saveData(); renderHistory();
+}
+
+// ─── SETTINGS ─────────────────────────────────────────────
+function renderSettings() {
+  document.getElementById("set-hotel-name").value = settings.hotelName;
+  document.getElementById("set-tagline").value = settings.tagline;
+  document.getElementById("set-gst-no").value = settings.gstNo;
+  document.getElementById("set-phone").value = settings.phone;
+
+  // Summary
+  const today = new Date().toDateString();
+  const todayBills = history.filter(b => new Date(b.time).toDateString() === today);
+  const totalRev = todayBills.reduce((s, b) => s + b.total, 0);
+  const totalGst = todayBills.reduce((s, b) => s + (b.gstAmt || 0), 0);
+  document.getElementById("sum-bills").textContent = todayBills.length;
+  document.getElementById("sum-revenue").textContent = "₹" + fmt(totalRev);
+  document.getElementById("sum-gst").textContent = "₹" + fmt(totalGst);
+  document.getElementById("sum-menu").textContent = menu.length;
+}
+
+function saveSettings() {
+  settings.hotelName = document.getElementById("set-hotel-name").value.trim() || "Grand Hotel";
+  settings.tagline = document.getElementById("set-tagline").value.trim();
+  settings.gstNo = document.getElementById("set-gst-no").value.trim();
+  settings.phone = document.getElementById("set-phone").value.trim();
+  saveData();
+  updateHeader();
+  toast("✓ Settings saved");
+}
+
+function factoryReset() {
+  if (!confirm("This will delete ALL data including menu, bills and settings. Are you sure?")) return;
+  localStorage.clear();
+  menu = []; cart = []; history = [];
+  settings = { hotelName: "Grand Hotel", tagline: "Offline Billing System", gstNo: "", phone: "" };
+  billCounter = 1;
+  saveData();
+  updateHeader();
+  renderMenuList();
+  renderHistory();
+  renderSettings();
+  toast("All data cleared");
+}
+
+// Close receipt on overlay click
+document.getElementById("receipt-overlay").addEventListener("click", function(e) {
+  if (e.target === this) closeReceipt();
+});
+
+// GST change re-renders summary
+document.getElementById("gst-select").addEventListener("change", renderBillSummary);
+
+// ─── INIT ─────────────────────────────────────────────────
+loadData();
+updateHeader();
+renderMenuList();
+</script>
+</body>
+</html>
